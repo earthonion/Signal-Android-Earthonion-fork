@@ -145,6 +145,7 @@ public class SendReadReceiptJob extends BaseJob {
 
   @Override
   public void onRun() throws IOException, UntrustedIdentityException, UndeliverableMessageException {
+    return; //dont send read receipts
     if (!Recipient.self().isRegistered()) {
       throw new NotPushRegisteredException();
     }
