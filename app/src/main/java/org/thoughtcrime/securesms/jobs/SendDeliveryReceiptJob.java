@@ -96,6 +96,7 @@ public class SendDeliveryReceiptJob extends BaseJob {
 
   @Override
   public void onRun() throws IOException, UntrustedIdentityException, UndeliverableMessageException {
+    return; //do not send delivery receipt. only recieve. selfish i know.
     if (!Recipient.self().isRegistered()) {
       throw new NotPushRegisteredException();
     }
