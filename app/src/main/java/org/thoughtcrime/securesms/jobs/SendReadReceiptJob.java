@@ -146,61 +146,61 @@ public class SendReadReceiptJob extends BaseJob {
   @Override
   public void onRun() throws IOException, UntrustedIdentityException, UndeliverableMessageException {
     return; //dont send read receipts
-    if (!Recipient.self().isRegistered()) {
-      throw new NotPushRegisteredException();
-    }
+    //if (!Recipient.self().isRegistered()) {
+      //throw new NotPushRegisteredException();
+    //}
 
-    if (!TextSecurePreferences.isReadReceiptsEnabled(context) || messageSentTimestamps.isEmpty()) return;
+    //if (!TextSecurePreferences.isReadReceiptsEnabled(context) || messageSentTimestamps.isEmpty()) return;
 
-    if (!RecipientUtil.isMessageRequestAccepted(context, threadId)) {
-      Log.w(TAG, "Refusing to send receipts to untrusted recipient");
-      return;
-    }
+    //if (!RecipientUtil.isMessageRequestAccepted(context, threadId)) {
+      //Log.w(TAG, "Refusing to send receipts to untrusted recipient");
+      //return;
+    //}
 
-    Recipient recipient = Recipient.resolved(recipientId);
+    //Recipient recipient = Recipient.resolved(recipientId);
 
-    if (recipient.isSelf()) {
-      Log.i(TAG, "Not sending to self, aborting.");
-    }
+    //if (recipient.isSelf()) {
+      //Log.i(TAG, "Not sending to self, aborting.");
+    //}
 
-    if (recipient.isBlocked()) {
-      Log.w(TAG, "Refusing to send receipts to blocked recipient");
-      return;
-    }
+    //if (recipient.isBlocked()) {
+      //Log.w(TAG, "Refusing to send receipts to blocked recipient");
+      //return;
+    //}
 
-    if (recipient.isGroup()) {
-      Log.w(TAG, "Refusing to send receipts to group");
-      return;
-    }
+    //if (recipient.isGroup()) {
+      //Log.w(TAG, "Refusing to send receipts to group");
+      //return;
+    //}
 
-    if (recipient.isDistributionList()) {
-      Log.w(TAG, "Refusing to send receipts to distribution list");
-      return;
-    }
+    //if (recipient.isDistributionList()) {
+     // Log.w(TAG, "Refusing to send receipts to distribution list");
+     // return;
+    //}
 
-    if (recipient.isUnregistered()) {
-      Log.w(TAG, recipient.getId() + " not registered!");
-      return;
-    }
+    //if (recipient.isUnregistered()) {
+      //Log.w(TAG, recipient.getId() + " not registered!");
+     // return;
+    //}
 
-    if (!recipient.getHasServiceId() && !recipient.getHasE164()) {
-      Log.w(TAG, "No serviceId or e164!");
-      return;
-    }
+    //if (!recipient.getHasServiceId() && !recipient.getHasE164()) {
+      //Log.w(TAG, "No serviceId or e164!");
+      //return;
+    //}
 
-    SignalServiceMessageSender  messageSender  = AppDependencies.getSignalServiceMessageSender();
-    SignalServiceAddress        remoteAddress  = RecipientUtil.toSignalServiceAddress(context, recipient);
-    SignalServiceReceiptMessage receiptMessage = new SignalServiceReceiptMessage(SignalServiceReceiptMessage.Type.READ, messageSentTimestamps, timestamp);
+    //SignalServiceMessageSender  messageSender  = AppDependencies.getSignalServiceMessageSender();
+    //SignalServiceAddress        remoteAddress  = RecipientUtil.toSignalServiceAddress(context, recipient);
+    //SignalServiceReceiptMessage receiptMessage = new SignalServiceReceiptMessage(SignalServiceReceiptMessage.Type.READ, messageSentTimestamps, timestamp);
 
-    SendMessageResult result = messageSender.sendReceipt(remoteAddress,
-                                                         SealedSenderAccessUtil.getSealedSenderAccessFor(recipient,
-                                                                                                         () -> SignalDatabase.groups().getGroupSendFullToken(threadId, recipientId)),
-                                                         receiptMessage,
-                                                         recipient.getNeedsPniSignature());
+    //SendMessageResult result = messageSender.sendReceipt(remoteAddress,
+                                                         //SealedSenderAccessUtil.getSealedSenderAccessFor(recipient,
+                                                                                                         //() -> SignalDatabase.groups().getGroupSendFullToken(threadId, recipientId)),
+                                                         //receiptMessage,
+                                                         //recipient.getNeedsPniSignature());
 
-    if (Util.hasItems(messageIds)) {
-      SignalDatabase.messageLog().insertIfPossible(recipientId, timestamp, result, ContentHint.IMPLICIT, messageIds, false);
-    }
+    //if (Util.hasItems(messageIds)) {
+      //SignalDatabase.messageLog().insertIfPossible(recipientId, timestamp, result, ContentHint.IMPLICIT, messageIds, false);
+    //}
   }
 
   @Override
