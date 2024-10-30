@@ -306,32 +306,47 @@ public class AttachmentManager {
   }
 
   public static void selectPayment(@NonNull Fragment fragment, @NonNull Recipient recipient) {
-    if (!ExpiringProfileCredentialUtil.isValid(recipient.getExpiringProfileKeyCredential())) {
-      CanNotSendPaymentDialog.show(fragment.requireContext());
-      return;
-    }
+    val recipient = viewModel.recipientSnapshot
 
-    SimpleTask.run(fragment.getViewLifecycleOwner().getLifecycle(),
-                   () -> {
-                     try {
-                       return ProfileUtil.getAddressForRecipient(recipient);
-                     } catch (IOException | PaymentsAddressException e) {
-                       Log.w(TAG, "Could not get address for recipient: ", e);
-                       return null;
-                     }
-                   },
-                   (address) -> {
-                     if (address != null) {
-                       Intent intent = new Intent(fragment.requireContext(), PaymentsActivity.class);
-                       intent.putExtra(PaymentsActivity.EXTRA_PAYMENTS_STARTING_ACTION, R.id.action_directly_to_createPayment);
-                       intent.putExtra(PaymentsActivity.EXTRA_STARTING_ARGUMENTS, new CreatePaymentFragmentArgs.Builder(new PayeeParcelable(recipient.getId())).setFinishOnConfirm(true).build().toBundle());
-                       fragment.startActivity(intent);
-                     } else if (RemoteConfig.paymentsRequestActivateFlow()) {
-                       showRequestToActivatePayments(fragment.requireContext(), recipient);
-                     } else {
-                       RecipientHasNotEnabledPaymentsDialog.show(fragment.requireContext());
-                     }
-                   });
+      if (recipient == null || !typingStatusEnabled || recipient.isBlocked || recipient.isSelf) {
+        return
+      }
+
+      val typingStatusSender = AppDependencies.typingStatusSender
+    
+      typingStatusSender.onTypingStarted(args.threadId)
+      typingStatusSender.onTypingStopped(args.threadId)
+      
+      
+      
+
+      
+    //if (!ExpiringProfileCredentialUtil.isValid(recipient.getExpiringProfileKeyCredential())) {
+     // CanNotSendPaymentDialog.show(fragment.requireContext());
+      //return;
+    //}
+
+   // SimpleTask.run(fragment.getViewLifecycleOwner().getLifecycle(),
+     //              () -> {
+                //     try {
+                    //   return ProfileUtil.getAddressForRecipient(recipient);
+                 //    } catch (IOException | PaymentsAddressException e) {
+                 //      Log.w(TAG, "Could not get address for recipient: ", e);
+                  //     return null;
+                 //    }
+              //     },
+                //   (address) -> {
+                 //    if (address != null) {
+                   //    Intent intent = new Intent(fragment.requireContext(), PaymentsActivity.class);
+                    //   intent.putExtra(PaymentsActivity.EXTRA_PAYMENTS_STARTING_ACTION, R.id.action_directly_to_createPayment);
+                      // intent.putExtra(PaymentsActivity.EXTRA_STARTING_ARGUMENTS, new CreatePaymentFragmentArgs.Builder(new PayeeParcelable(recipient.getId())).setFinishOnConfirm(true).build().toBundle());
+                      // fragment.startActivity(intent);
+                     //} else if (RemoteConfig.paymentsRequestActivateFlow()) {
+                      // showRequestToActivatePayments(fragment.requireContext(), recipient);
+                    // } else {
+                    //   RecipientHasNotEnabledPaymentsDialog.show(fragment.requireContext());
+                    // }
+                   //});
   }
 
   public static void showRequestToActivatePayments(@NonNull Context context, @NonNull Recipient recipient) {
