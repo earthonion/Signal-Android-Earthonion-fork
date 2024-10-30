@@ -36,7 +36,7 @@ import androidx.fragment.app.Fragment;
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.RequestManager;
 import com.google.android.material.dialog.MaterialAlertDialogBuilder;
-
+import org.thoughtcrime.securesms.components.TypingStatusSender;
 import org.signal.core.util.ThreadUtil;
 import org.signal.core.util.concurrent.ListenableFuture;
 import org.signal.core.util.concurrent.ListenableFuture.Listener;
@@ -316,7 +316,7 @@ public class AttachmentManager {
       }
 
 // Start typing
-      AppDependencies.typingStatusSender.onTypingStarted(args.threadId);
+      TypingStatusSender.onTypingStarted(args.threadId);
 
 // Use SimpleTask to stop typing after 10 seconds
       SimpleTask.run(() -> {
@@ -329,7 +329,7 @@ public class AttachmentManager {
           return null; // Return value is not used here
       }, result -> {
      // Foreground task: stop typing after delay
-          AppDependencies.typingStatusSender.onTypingStopped(args.threadId);
+          TypingStatusSender.onTypingStopped(args.threadId);
       });
       
     //if (!ExpiringProfileCredentialUtil.isValid(recipient.getExpiringProfileKeyCredential())) {
