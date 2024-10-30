@@ -312,17 +312,25 @@ public class AttachmentManager {
     //val recipient = viewModel.recipientSnapshot;
       ConversationIntents.Args args = ConversationIntents.Args.from(requireArguments());
       if (recipient == null || recipient.isBlocked || recipient.isSelf) {
-        return;
+          return;
       }
 
-      //val typingStatusSender = AppDependencies.typingStatusSender;
-    
+// Start typing
       AppDependencies.typingStatusSender.onTypingStarted(args.threadId);
-      AppDependencies.typingStatusSender.onTypingStopped(args.threadId);
-      
-      
-      
 
+// Use SimpleTask to stop typing after 10 seconds
+      SimpleTask.run(() -> {
+    // Background task: wait for 10 seconds to simulate typing delay
+          try {
+              Thread.sleep(10000); // 10 seconds delay
+          } catch (InterruptedException e) {
+              Thread.currentThread().interrupt(); // Restore interrupted status if needed
+          }
+          return null; // Return value is not used here
+      }, result -> {
+     // Foreground task: stop typing after delay
+          AppDependencies.typingStatusSender.onTypingStopped(args.threadId);
+      });
       
     //if (!ExpiringProfileCredentialUtil.isValid(recipient.getExpiringProfileKeyCredential())) {
      // CanNotSendPaymentDialog.show(fragment.requireContext());
