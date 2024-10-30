@@ -310,8 +310,8 @@ public class AttachmentManager {
   
   public static void selectPayment(@NonNull Fragment fragment, @NonNull Recipient recipient) {
     //val recipient = viewModel.recipientSnapshot;
-      ConversationIntents.Args args = ConversationIntents.Args.from(requireArguments());
-      if (recipient == null || recipient.isBlocked || recipient.isSelf) {
+      //ConversationIntents.Args args = ConversationIntents.Args.from(requireArguments());
+      if (recipient == null) {
           return;
       }
 
