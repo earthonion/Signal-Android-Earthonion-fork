@@ -68,6 +68,7 @@ import org.thoughtcrime.securesms.payments.preferences.RecipientHasNotEnabledPay
 import org.thoughtcrime.securesms.payments.preferences.model.PayeeParcelable;
 import org.thoughtcrime.securesms.permissions.PermissionCompat;
 import org.thoughtcrime.securesms.permissions.Permissions;
+import org.thoughtcrime.securesms.conversation.ConversationIntents
 import org.thoughtcrime.securesms.providers.BlobProvider;
 import org.thoughtcrime.securesms.providers.DeprecatedPersistentBlobProvider;
 import org.thoughtcrime.securesms.recipients.Recipient;
@@ -305,7 +306,10 @@ public class AttachmentManager {
     intent.putExtra(GiphyActivity.EXTRA_TEXT, textTrimmed);
     fragment.startActivityForResult(intent, requestCode);
   }
-
+private val args: ConversationIntents.Args by lazy {
+    ConversationIntents.Args.from(requireArguments())
+      }
+  
   public static void selectPayment(@NonNull Fragment fragment, @NonNull Recipient recipient) {
     val recipient = viewModel.recipientSnapshot
 
