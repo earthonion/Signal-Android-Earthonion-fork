@@ -306,13 +306,11 @@ public class AttachmentManager {
     intent.putExtra(GiphyActivity.EXTRA_TEXT, textTrimmed);
     fragment.startActivityForResult(intent, requestCode);
   }
-private val args: ConversationIntents.Args by lazy {
-    ConversationIntents.Args.from(requireArguments())
-      }
+
   
   public static void selectPayment(@NonNull Fragment fragment, @NonNull Recipient recipient) {
     //val recipient = viewModel.recipientSnapshot;
-
+      ConversationIntents.Args args = ConversationIntents.Args.from(requireArguments());
       if (recipient == null || recipient.isBlocked || recipient.isSelf) {
         return;
       }
