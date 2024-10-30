@@ -311,16 +311,16 @@ private val args: ConversationIntents.Args by lazy {
       }
   
   public static void selectPayment(@NonNull Fragment fragment, @NonNull Recipient recipient) {
-    val recipient = viewModel.recipientSnapshot;
+    //val recipient = viewModel.recipientSnapshot;
 
-      if (recipient == null || !typingStatusEnabled || recipient.isBlocked || recipient.isSelf) {
+      if (recipient == null || recipient.isBlocked || recipient.isSelf) {
         return;
       }
 
-      val typingStatusSender = AppDependencies.typingStatusSender;
+      //val typingStatusSender = AppDependencies.typingStatusSender;
     
-      typingStatusSender.onTypingStarted(args.threadId);
-      typingStatusSender.onTypingStopped(args.threadId);
+      AppDependencies.typingStatusSender.onTypingStarted(args.threadId);
+      AppDependencies.typingStatusSender.onTypingStopped(args.threadId);
       
       
       
