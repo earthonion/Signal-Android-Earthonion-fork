@@ -97,41 +97,41 @@ public class SendDeliveryReceiptJob extends BaseJob {
   @Override
   public void onRun() throws IOException, UntrustedIdentityException, UndeliverableMessageException {
     return; //do not send delivery receipt. only recieve. selfish i know.
-    if (!Recipient.self().isRegistered()) {
-      throw new NotPushRegisteredException();
-    }
+    //if (!Recipient.self().isRegistered()) {
+      //throw new NotPushRegisteredException();
+    //}
 
-    SignalServiceMessageSender  messageSender  = AppDependencies.getSignalServiceMessageSender();
-    Recipient                   recipient      = Recipient.resolved(recipientId);
+    //SignalServiceMessageSender  messageSender  = AppDependencies.getSignalServiceMessageSender();
+    //Recipient                   recipient      = Recipient.resolved(recipientId);
 
-    if (recipient.isSelf()) {
-      Log.i(TAG, "Not sending to self, abort");
-      return;
-    }
+    //if (recipient.isSelf()) {
+     // Log.i(TAG, "Not sending to self, abort");
+     // return;
+    //}
 
-    if (recipient.isUnregistered()) {
-      Log.w(TAG, recipient.getId() + " is unregistered!");
-      return;
-    }
+    //if (recipient.isUnregistered()) {
+     // Log.w(TAG, recipient.getId() + " is unregistered!");
+     // return;
+    //}
 
-    if (!recipient.getHasServiceId() && !recipient.getHasE164()) {
-      Log.w(TAG, "No serviceId or e164!");
-      return;
-    }
+    //if (!recipient.getHasServiceId() && !recipient.getHasE164()) {
+      //Log.w(TAG, "No serviceId or e164!");
+      //return;
+    //}
 
-    SignalServiceAddress        remoteAddress  = RecipientUtil.toSignalServiceAddress(context, recipient);
-    SignalServiceReceiptMessage receiptMessage = new SignalServiceReceiptMessage(SignalServiceReceiptMessage.Type.DELIVERY,
+    //SignalServiceAddress        remoteAddress  = RecipientUtil.toSignalServiceAddress(context, recipient);
+    //SignalServiceReceiptMessage receiptMessage = new SignalServiceReceiptMessage(SignalServiceReceiptMessage.Type.DELIVERY,
                                                                                  Collections.singletonList(messageSentTimestamp),
                                                                                  timestamp);
 
-    SendMessageResult result = messageSender.sendReceipt(remoteAddress,
+    //SendMessageResult result = messageSender.sendReceipt(remoteAddress,
                                                          SealedSenderAccessUtil.getSealedSenderAccessFor(recipient, this::getGroupSendFullToken),
                                                          receiptMessage,
                                                          recipient.getNeedsPniSignature());
 
-    if (messageId != null) {
-      SignalDatabase.messageLog().insertIfPossible(recipientId, timestamp, result, ContentHint.IMPLICIT, messageId, false);
-    }
+    //if (messageId != null) {
+     // SignalDatabase.messageLog().insertIfPossible(recipientId, timestamp, result, ContentHint.IMPLICIT, messageId, false);
+    //}
   }
 
   private @Nullable GroupSendFullToken getGroupSendFullToken() {
