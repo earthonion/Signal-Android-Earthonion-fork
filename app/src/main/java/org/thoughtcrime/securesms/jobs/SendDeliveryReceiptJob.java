@@ -121,13 +121,13 @@ public class SendDeliveryReceiptJob extends BaseJob {
 
     //SignalServiceAddress        remoteAddress  = RecipientUtil.toSignalServiceAddress(context, recipient);
     //SignalServiceReceiptMessage receiptMessage = new SignalServiceReceiptMessage(SignalServiceReceiptMessage.Type.DELIVERY,
-                                                                                 Collections.singletonList(messageSentTimestamp),
-                                                                                 timestamp);
+                                                                                // Collections.singletonList(messageSentTimestamp),
+                                                                                // timestamp);
 
     //SendMessageResult result = messageSender.sendReceipt(remoteAddress,
-                                                         SealedSenderAccessUtil.getSealedSenderAccessFor(recipient, this::getGroupSendFullToken),
-                                                         receiptMessage,
-                                                         recipient.getNeedsPniSignature());
+                                                         //SealedSenderAccessUtil.getSealedSenderAccessFor(recipient, this::getGroupSendFullToken),
+                                                         //receiptMessage,
+                                                         //recipient.getNeedsPniSignature());
 
     //if (messageId != null) {
      // SignalDatabase.messageLog().insertIfPossible(recipientId, timestamp, result, ContentHint.IMPLICIT, messageId, false);
