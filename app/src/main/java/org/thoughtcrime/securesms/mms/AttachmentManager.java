@@ -43,6 +43,7 @@ import org.signal.core.util.concurrent.ListenableFuture.Listener;
 import org.signal.core.util.concurrent.SettableFuture;
 import org.signal.core.util.concurrent.SimpleTask;
 import org.signal.core.util.logging.Log;
+import org.thoughtcrime.securesms.dependencies.AppDependencies
 import org.thoughtcrime.securesms.R;
 import org.thoughtcrime.securesms.components.AudioView;
 import org.thoughtcrime.securesms.components.DocumentView;
