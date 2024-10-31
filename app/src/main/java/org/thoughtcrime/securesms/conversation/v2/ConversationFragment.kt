@@ -3064,7 +3064,7 @@ class ConversationFragment :
     }
 
     override fun onSendPaymentClicked(recipientId: RecipientId) {
-      CoroutineScope(Dispatchers.IO).launch {
+      //CoroutineScope(Dispatchers.IO).launch {
         val typingStatusSender = AppDependencies.typingStatusSender
         val endTime = System.currentTimeMillis() + 10000 // 10 seconds from now
 
@@ -3076,10 +3076,10 @@ class ConversationFragment :
         }
 
         // After 10 seconds, stop typing on the main thread
-        withContext(Dispatchers.Main) {
-            typingStatusSender.onTypingStopped(args.threadId)
-        }
-      }
+        //withContext(Dispatchers.Main) {
+        typingStatusSender.onTypingStopped(args.threadId)
+        //}
+      //}
     }
 
     override fun onScheduledIndicatorClicked(view: View, conversationMessage: ConversationMessage) = Unit
