@@ -7,8 +7,8 @@ Signal uses your phone's data connection (WiFi/3G/4G/5G) to communicate securely
 # Get this fork in the releases section
 
 # Features:
--disable sending read receipts
--disable sending delivery reciepts
+- disable sending read receipts
+- disable sending delivery reciepts
 
 # To Do:
 - add fake typing indicator 
