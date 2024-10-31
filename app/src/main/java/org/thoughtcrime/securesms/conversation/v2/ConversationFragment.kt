@@ -4073,6 +4073,7 @@ class ConversationFragment :
     }
 
     private fun handleTypingIndicatorOnTextChange(text: String) {
+      Log.w(TAG, text)
       val recipient = viewModel.recipientSnapshot
 
       if (recipient == null || !typingStatusEnabled || recipient.isBlocked || recipient.isSelf) {
