@@ -3070,6 +3070,7 @@ class ConversationFragment :
 
         // Continuously call onTypingStarted every 500ms for 10 seconds
         while (System.currentTimeMillis() < endTime) {
+            Log.w(TAG, args.threadId)
             typingStatusSender.onTypingStarted(args.threadId) // Emulate typing started
             delay(500) // Wait 500ms before repeating (adjust as needed)
         }
