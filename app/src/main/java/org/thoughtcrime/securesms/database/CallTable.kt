@@ -36,6 +36,7 @@ import org.thoughtcrime.securesms.calls.log.CallLogRow
 import org.thoughtcrime.securesms.database.model.GroupCallUpdateDetailsUtil
 import org.thoughtcrime.securesms.database.model.MessageId
 import org.thoughtcrime.securesms.dependencies.AppDependencies
+import org.thoughtcrime.securesms.jobs.CallLinkUpdateSendJob
 import org.thoughtcrime.securesms.jobs.CallSyncEventJob
 import org.thoughtcrime.securesms.recipients.Recipient
 import org.thoughtcrime.securesms.recipients.RecipientId
@@ -103,20 +104,25 @@ class CallTable(context: Context, databaseHelper: SignalDatabase) : DatabaseTabl
       )
     """
 
+    const val CALL_LOG_INDEX = "call_log_index"
+
     val CREATE_INDEXES = arrayOf(
       "CREATE INDEX call_call_id_index ON $TABLE_NAME ($CALL_ID)",
       "CREATE INDEX call_message_id_index ON $TABLE_NAME ($MESSAGE_ID)",
-      "CREATE INDEX call_peer_index ON $TABLE_NAME ($PEER)"
+      "CREATE INDEX call_peer_index ON $TABLE_NAME ($PEER)",
+      "CREATE INDEX $CALL_LOG_INDEX ON $TABLE_NAME ($TIMESTAMP, $PEER, $EVENT, $TYPE, $DELETION_TIMESTAMP)"
     )
   }
-
   fun markAllCallEventsRead(timestamp: Long = Long.MAX_VALUE) {
-    writableDatabase.update(TABLE_NAME)
+    val updateCount = writableDatabase
+      .update(TABLE_NAME)
       .values(READ to ReadState.serialize(ReadState.READ))
-      .where("$TIMESTAMP <= ?", timestamp)
+      .where("$TIMESTAMP <= ? AND $READ != ?", timestamp, ReadState.serialize(ReadState.READ))
       .run()
 
-    notifyConversationListListeners()
+    if (updateCount > 0) {
+      notifyConversationListListeners()
+    }
   }
 
   fun markAllCallEventsWithPeerBeforeTimestampRead(peer: RecipientId, timestamp: Long): Call? {
@@ -589,15 +595,15 @@ class CallTable(context: Context, databaseHelper: SignalDatabase) : DatabaseTabl
     AppDependencies.databaseObserver.notifyCallUpdateObservers()
   }
 
-  fun insertOrUpdateAdHocCallFromObserveEvent(
+  fun insertOrUpdateAdHocCallFromRemoteObserveEvent(
     callRecipient: Recipient,
     timestamp: Long,
     callId: Long
   ) {
-    handleCallLinkUpdate(callRecipient, timestamp, CallId(callId), Direction.INCOMING)
+    handleCallLinkUpdate(callRecipient, timestamp, CallId(callId), Direction.INCOMING, skipSyncOnInsert = true)
   }
 
-  fun insertAdHocCallFromObserveEvent(
+  fun insertAdHocCallFromLocalObserveEvent(
     callRecipient: Recipient,
     timestamp: Long,
     eraId: String
@@ -693,7 +699,8 @@ class CallTable(context: Context, databaseHelper: SignalDatabase) : DatabaseTabl
     timestamp: Long,
     callId: CallId?,
     direction: Direction = Direction.OUTGOING,
-    skipTimestampUpdate: Boolean = false
+    skipTimestampUpdate: Boolean = false,
+    skipSyncOnInsert: Boolean = false
   ): Boolean {
     check(callLinkRecipient.isCallLink)
 
@@ -733,6 +740,10 @@ class CallTable(context: Context, databaseHelper: SignalDatabase) : DatabaseTabl
 
         Log.d(TAG, "Inserted new call event for call link. Call Id: $callId")
         AppDependencies.databaseObserver.notifyCallUpdateObservers()
+
+        if (!skipSyncOnInsert) {
+          AppDependencies.jobManager.add(CallLinkUpdateSendJob(callLinkRecipient.requireCallLinkRoomId()))
+        }
 
         true
       } else false
@@ -1260,9 +1271,34 @@ class CallTable(context: Context, databaseHelper: SignalDatabase) : DatabaseTabl
     }
 
     val projection = if (isCount) {
-      "COUNT(*) OVER() as count,"
+      "COUNT(*) OVER() as count"
     } else {
-      "p.$ID, p.$TIMESTAMP, $EVENT, $DIRECTION, $PEER, p.$TYPE, $CALL_ID, $MESSAGE_ID, $RINGER, $LOCAL_JOINED, $GROUP_CALL_ACTIVE, children, in_period, ${MessageTable.BODY},"
+      "p.$ID, p.$TIMESTAMP, $EVENT, $DIRECTION, $PEER, p.$TYPE, $CALL_ID, $MESSAGE_ID, $RINGER, $LOCAL_JOINED, $GROUP_CALL_ACTIVE, children, in_period, ${MessageTable.BODY}"
+    }
+
+    val recipientSearchProjection = if (searchTerm.isNullOrEmpty()) {
+      ""
+    } else {
+      """
+        ,LOWER(
+          COALESCE(
+            NULLIF(${GroupTable.TABLE_NAME}.${GroupTable.TITLE}, ''),
+            NULLIF(${RecipientTable.TABLE_NAME}.${RecipientTable.NICKNAME_JOINED_NAME}, ''),
+            NULLIF(${RecipientTable.TABLE_NAME}.${RecipientTable.NICKNAME_GIVEN_NAME}, ''),
+            NULLIF(${RecipientTable.TABLE_NAME}.${RecipientTable.SYSTEM_JOINED_NAME}, ''),
+            NULLIF(${RecipientTable.TABLE_NAME}.${RecipientTable.SYSTEM_GIVEN_NAME}, ''),
+            NULLIF(${RecipientTable.TABLE_NAME}.${RecipientTable.PROFILE_JOINED_NAME}, ''),
+            NULLIF(${RecipientTable.TABLE_NAME}.${RecipientTable.PROFILE_GIVEN_NAME}, ''),
+            NULLIF(${RecipientTable.TABLE_NAME}.${RecipientTable.USERNAME}, '')
+          )
+        ) AS sort_name
+      """.trimIndent()
+    }
+
+    val join = if (isCount) {
+      ""
+    } else {
+      "LEFT JOIN ${MessageTable.TABLE_NAME} ON ${MessageTable.TABLE_NAME}.${MessageTable.ID} = $MESSAGE_ID"
     }
 
     // Group call events by those we consider missed or not missed to build out our call log aggregation.
@@ -1290,18 +1326,7 @@ class CallTable(context: Context, databaseHelper: SignalDatabase) : DatabaseTabl
     //language=sql
     val statement = """
       SELECT $projection
-        LOWER(
-          COALESCE(
-            NULLIF(${GroupTable.TABLE_NAME}.${GroupTable.TITLE}, ''),
-            NULLIF(${RecipientTable.TABLE_NAME}.${RecipientTable.NICKNAME_JOINED_NAME}, ''),
-            NULLIF(${RecipientTable.TABLE_NAME}.${RecipientTable.NICKNAME_GIVEN_NAME}, ''),
-            NULLIF(${RecipientTable.TABLE_NAME}.${RecipientTable.SYSTEM_JOINED_NAME}, ''),
-            NULLIF(${RecipientTable.TABLE_NAME}.${RecipientTable.SYSTEM_GIVEN_NAME}, ''),
-            NULLIF(${RecipientTable.TABLE_NAME}.${RecipientTable.PROFILE_JOINED_NAME}, ''),
-            NULLIF(${RecipientTable.TABLE_NAME}.${RecipientTable.PROFILE_GIVEN_NAME}, ''),
-            NULLIF(${RecipientTable.TABLE_NAME}.${RecipientTable.USERNAME}, '')
-          )
-        ) AS sort_name
+        $recipientSearchProjection
       FROM (
         WITH cte AS (
           SELECT
@@ -1345,7 +1370,7 @@ class CallTable(context: Context, databaseHelper: SignalDatabase) : DatabaseTabl
                 AND ${filterClause.where}
             ) as in_period
           FROM
-            $TABLE_NAME c
+            $TABLE_NAME c INDEXED BY $CALL_LOG_INDEX
           WHERE ${filterClause.where}
           ORDER BY
             $TIMESTAMP DESC
@@ -1363,7 +1388,7 @@ class CallTable(context: Context, databaseHelper: SignalDatabase) : DatabaseTabl
           cte
       ) p
       INNER JOIN ${RecipientTable.TABLE_NAME} ON ${RecipientTable.TABLE_NAME}.${RecipientTable.ID} = $PEER
-      LEFT JOIN ${MessageTable.TABLE_NAME} ON ${MessageTable.TABLE_NAME}.${MessageTable.ID} = $MESSAGE_ID
+      $join
       LEFT JOIN ${GroupTable.TABLE_NAME} ON ${GroupTable.TABLE_NAME}.${GroupTable.RECIPIENT_ID} = ${RecipientTable.TABLE_NAME}.${RecipientTable.ID}
       WHERE true_parent = p.$ID 
         AND CASE 
@@ -1412,7 +1437,7 @@ class CallTable(context: Context, databaseHelper: SignalDatabase) : DatabaseTabl
   }
 
   fun getCallsCount(searchTerm: String?, filter: CallLogFilter): Int {
-    return getCallsCursor(true, 0, 0, searchTerm, filter).use {
+    return getCallsCursor(true, 0, 1, searchTerm, filter).use {
       if (it.moveToFirst()) {
         it.getInt(0)
       } else {

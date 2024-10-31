@@ -23,7 +23,7 @@ import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
 import org.signal.core.util.bytes
 import org.signal.core.util.throttleLatest
-import org.thoughtcrime.securesms.backup.v2.ui.status.BackupStatus
+import org.thoughtcrime.securesms.backup.v2.ui.status.BackupStatusBanner
 import org.thoughtcrime.securesms.backup.v2.ui.status.BackupStatusData
 import org.thoughtcrime.securesms.banner.Banner
 import org.thoughtcrime.securesms.database.DatabaseObserver
@@ -37,7 +37,7 @@ import org.thoughtcrime.securesms.util.safeUnregisterReceiver
 import kotlin.time.Duration.Companion.seconds
 
 @OptIn(ExperimentalCoroutinesApi::class)
-class MediaRestoreProgressBanner(private val listener: RestoreProgressBannerListener) : Banner<BackupStatusData>() {
+class MediaRestoreProgressBanner(private val listener: RestoreProgressBannerListener = EmptyListener) : Banner<BackupStatusData>() {
 
   private var totalRestoredSize: Long = 0
 
@@ -71,7 +71,7 @@ class MediaRestoreProgressBanner(private val listener: RestoreProgressBannerList
 
   @Composable
   override fun DisplayBanner(model: BackupStatusData, contentPadding: PaddingValues) {
-    BackupStatus(
+    BackupStatusBanner(
       data = model,
       onSkipClick = listener::onSkip,
       onDismissClick = listener::onDismissComplete
@@ -126,5 +126,10 @@ class MediaRestoreProgressBanner(private val listener: RestoreProgressBannerList
   interface RestoreProgressBannerListener {
     fun onSkip()
     fun onDismissComplete()
+  }
+
+  private object EmptyListener : RestoreProgressBannerListener {
+    override fun onSkip() = Unit
+    override fun onDismissComplete() = Unit
   }
 }
