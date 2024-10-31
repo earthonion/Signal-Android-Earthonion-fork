@@ -42,4 +42,4 @@ jobs:
         uses: actions/upload-artifact@v3
         with:
           name: Signal-Android-APK
-          path: app/build/outputs/apk/playProd/debug/Signal-Android-play-prod-universal-debug-7.20.1.apk
+          path: app/build/outputs/apk/playProd/debug/Signal-Android-play-prod-universal-debug-7.22.2.apk
