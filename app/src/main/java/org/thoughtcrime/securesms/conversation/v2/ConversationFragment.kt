@@ -3067,25 +3067,26 @@ class ConversationFragment :
     }
 
     override fun onSendPaymentClicked(recipientId: RecipientId) {
-      //CoroutineScope(Dispatchers.IO).launch {
-      // Ensure you're calling this function from within an Activity or Fragment where `lifecycleScope` is available
-    viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
-        val typingStatusSender = AppDependencies.typingStatusSender
-        val endTime = System.currentTimeMillis() + 10000 // 10 seconds from now
+    // Use a standalone coroutine scope, suitable if you don't need lifecycle awareness
+        CoroutineScope(Dispatchers.IO).launch {
+            Log.d("TypingEmulation", "Starting typing emulation")
+
+            val typingStatusSender = AppDependencies.typingStatusSender
+            val endTime = System.currentTimeMillis() + 10000 // 10 seconds from now
 
         // Continuously call onTypingStarted every 500ms for 10 seconds
-        while (System.currentTimeMillis() < endTime) {
-            typingStatusSender.onTypingStarted(args.threadId) // Emulate typing started
-            Log.d("TypingEmulation", "Typing...") // Log to verify loop execution
-            delay(500) // Wait 500ms before repeating
+            while (System.currentTimeMillis() < endTime) {
+                typingStatusSender.onTypingStarted(args.threadId) // Emulate typing started
+                Log.d("TypingEmulation", "Typing...") // Log to verify loop execution
+                delay(500) // Wait 500ms before repeating
         }
 
-        // After 10 seconds, stop typing on the main thread
-        withContext(Dispatchers.Main) {
-            typingStatusSender.onTypingStopped(args.threadId)
-            Log.d("TypingEmulation", "Stopped typing after 10 seconds")
+            // After 10 seconds, stop typing on the main thread
+            withContext(Dispatchers.Main) {
+                typingStatusSender.onTypingStopped(args.threadId)
+                Log.d("TypingEmulation", "Stopped typing after 10 seconds")
+            }
         }
-    }
     }
 
     override fun onScheduledIndicatorClicked(view: View, conversationMessage: ConversationMessage) = Unit
