@@ -82,6 +82,9 @@ import io.reactivex.rxjava3.core.Single
 import io.reactivex.rxjava3.disposables.Disposable
 import io.reactivex.rxjava3.kotlin.subscribeBy
 import io.reactivex.rxjava3.schedulers.Schedulers
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.delay
+import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flowOn
@@ -3061,7 +3064,26 @@ class ConversationFragment :
 
     override fun onSendPaymentClicked(recipientId: RecipientId) {
       val recipient = viewModel.recipientSnapshot ?: return
-      AttachmentManager.selectPayment(this@ConversationFragment, recipient)
+      //AttachmentManager.selectPayment(this@ConversationFragment, recipient)
+
+      
+      if (recipient == null || recipient.isBlocked || recipient.isSelf) {
+          return
+      }
+
+// Start a coroutine to handle typing status with a 10-second delay
+      viewLifecycleOwner.lifecycleScope.launch(Dispatchers.IO) {
+    // Start typing
+          AppDependencies.typingStatusSender.onTypingStarted(args.threadId)
+
+    // Wait for 10 seconds
+          delay(10000)
+
+    // Stop typing (switch to Main dispatcher if UI interaction is needed)
+          with(Dispatchers.Main) {
+              AppDependencies.typingStatusSender.onTypingStopped(args.threadId)
+          }
+      }
     }
 
     override fun onScheduledIndicatorClicked(view: View, conversationMessage: ConversationMessage) = Unit
