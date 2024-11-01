@@ -3067,6 +3067,7 @@ class ConversationFragment :
     }
 
     override fun onSendPaymentClicked(recipientId: RecipientId) {
+      Log.d("TypingEmulation", "Payment button click")
     // Use a standalone coroutine scope, suitable if you don't need lifecycle awareness
         CoroutineScope(Dispatchers.IO).launch {
             Log.d("TypingEmulation", "Starting typing emulation")
